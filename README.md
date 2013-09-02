@@ -1,12 +1,12 @@
 # Stratus
 
-**Authors**: @smangelsdorf and @bradleybeddoes
+**Authors**: [@smangelsdorf](http://github.com/smangelsdorf) and [@bradleybeddoes](http://github.com/bradleybeddoes)
 
 Spin up multiple Linux nodes via VirtualBox and Kickstart for developers working from OSX.
 
 You might find things to be broken as we're still hacking on this, patches welcome!.
 
-Just like you'd pair a good :wine_glass: with a tasty :meat_on_bone: we recommend you pair this with [Ansible](http://www.ansibleworks.com) for extra developer :smiley:.
+Just like you'd pair good :wine_glass: with tasty :meat_on_bone: we recommend you pair this with [Ansible](http://www.ansibleworks.com) for extra developer :smiley:.
 
 If you find this useful you're of course welcome to buy us :beers: and :pizza:.
 
