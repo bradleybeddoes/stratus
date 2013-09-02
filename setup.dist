@@ -1,0 +1,6 @@
+# The directory where Stratum created
+# iso and machines will be stored within.
+#
+# This can (should?) differ from your Virtualbox configured
+# default directory for machines.
+home_dir=$HOME/Virtualbox

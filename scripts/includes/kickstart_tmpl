@@ -1,0 +1,36 @@
+cfg() { echo """
+  install
+  text
+  reboot
+  cdrom
+
+  lang en_US.UTF-8
+  keyboard us
+  skipx
+
+  network --device eth0 --bootproto dhcp --hostname $name
+  network --device eth1 --bootproto static --ip $ipaddress --netmask $netmask
+
+  rootpw --iscrypted \$1\$wshWYqRX\$2vBvPq8TPepMhd.QnxcG80
+  firewall --disabled
+  selinux --disabled
+  authconfig --enableshadow --enablemd5
+  timezone UTC
+  bootloader --location=mbr
+
+  zerombr
+  clearpart --all --initlabel
+  part /boot --fstype ext3 --size=250
+  part pv.2 --size=5000 --grow
+  volgroup VolGroup00 --pesize=32768 pv.2
+  logvol / --fstype ext4 --name=LogVol00 --vgname=VolGroup00 --size=1024 --grow
+  logvol swap --fstype swap --name=LogVol01 --vgname=VolGroup00 --size=256 --grow --maxsize=512
+
+  %post
+  mkdir /root/.ssh
+  echo $key > /root/.ssh/authorized_keys
+  chmod 0700 /root/.ssh
+  chmod 0600 /root/.ssh/authorized_keys
+  %end
+"""
+}

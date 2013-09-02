@@ -1,0 +1,9 @@
+cfg() { echo """default linux
+prompt 0
+timeout 0
+
+label linux
+  kernel vmlinuz
+  append initrd=initrd.img ksdevice=eth1 ks=$ks_server
+"""
+}

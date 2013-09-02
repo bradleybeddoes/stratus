@@ -1,0 +1,10 @@
+# Input file to allow creation of multiple machines at once
+# Line format:
+# name,ipaddress,group,execute
+#
+# name: Name of the machine
+# ipaddress: IPAddress to assign to eth1
+# group: The Virtualbox group to assign to the machine
+# execute: Should the machine be automatically executed once provisioned
+#
+#test1,192.168.56.1,examplegroup,false

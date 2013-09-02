@@ -1,0 +1,81 @@
+#!/bin/bash
+
+# Build an iso that utilises kickstarter via a web request.
+
+# Requirements:
+#   OSX
+#   Homebrew is installed - http://brew.sh/
+#   The cdrtools formula is installed $>brew install cdrtools
+
+source scripts/includes/load_setup
+source scripts/includes/grub_tmpl
+
+os='centos'
+rel='6.4'
+mirror='http://mirror.aarnet.edu.au/pub/centos/6.4/isos/x86_64'
+iso='CentOS-6.4-x86_64-minimal.iso'
+ks_server='http://192.168.56.1:8080/kickstart'
+
+usage()
+{
+cat << EOF
+usage: $0 options
+
+This script will prepare an autoboot Linux ISO used with a specified kickstarter server.
+
+Requirements:
+  Homebrew is installed - http://brew.sh/
+  The cdrtools formula is installed $>brew install cdrtools
+
+OPTIONS:
+  -o   OS name
+  -r   OS version
+  -m   Remote mirror URL
+  -i   ISO filename at remote mirror
+
+  -s   Kickstart URL
+
+  -h   Show this message
+EOF
+}
+
+while getopts “o:r:m:i:s:” OPTION
+do
+     case $OPTION in
+        h)  usage; exit;;
+        o)  os=$OPTARG;;
+        r)  rel=$OPTARG;;
+        m)  mirror=$OPTARG;;
+        i)  iso=$OPTARG;;
+        s)  ks_server=$OPTARG;;
+        ?)  usage; exit;;
+     esac
+done
+
+echo -e "Setting up auto deploy iso for $os $rel"
+
+mkdir -p $home_dir/images/$os/$rel && cd $home_dir/images/$os/$rel
+if [ ! -f $home_dir/images/$os/$rel/$iso ]; then
+  wget $mirror/$iso
+fi
+
+hdiutil attach -quiet -mountpoint /Volumes/$os-$rel $iso
+
+echo -e "Duplicating iso and allowing modification"
+cp -r /Volumes/$os-$rel ./$os-$rel
+find ./$os-$rel -type d -exec chmod 755 {} \;
+find ./$os-$rel -type f -exec chmod 644 {} \;
+
+echo -e "Setting new isolinux.cfg"
+cfg > $os-$rel/isolinux/isolinux.cfg
+
+echo -e "Building new iso for $os $rel"
+mkisofs -quiet -r -b isolinux/isolinux.bin -c isolinux/boot.cat -boot-load-size 4 -boot-info-table -no-emul-boot -o $os-$rel-autoks.iso $os-$rel
+
+echo -e "Cleaning up environment"
+rm -rf ./$os-$rel
+hdiutil unmount -quiet /Volumes/$os-$rel
+
+echo -e "All done. New iso located at $home_dir/images/$os/$rel/$os-$rel-autoks.iso"
+echo -e "New SHA 1 hash for generated iso:"
+shasum -a 1 $home_dir/images/$os/$rel/$os-$rel-autoks.iso

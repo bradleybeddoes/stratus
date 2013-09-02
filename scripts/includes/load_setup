@@ -1,0 +1,7 @@
+
+if [ ! -f setup ]; then
+  echo "Please create a setup file from setup.dist in your top level Stratum directory"
+  exit;
+fi
+
+source setup

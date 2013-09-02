@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# Create a Virtualbox server utilising an auto kickstart iso
+#
+# Requirements:
+#   OSX
+#   An ISO to automatically load kickstarter for the specified OS and release has been created locally.
+
+source scripts/includes/load_setup
+source scripts/includes/kickstart_tmpl
+
+name=
+ipaddress=
+group=""
+execute=false
+
+os='centos'
+rel='6.4'
+netmask='255.255.255.0'
+dir=$HOME/Virtualbox
+key_file=$HOME/.ssh/id_rsa.pub
+ostype='RedHat_64'
+
+usage()
+{
+cat << EOF
+usage: $0 options
+
+Create a Virtualbox server utilising an auto kickstart ISO
+
+Requirements:
+  An ISO to automatically load kickstarter for the specified OS and release has been created locally.
+
+OPTIONS:
+  -n   Name for this server (Required)
+  -a   IP Address (Required)
+
+  -g   Virtualbox Group
+  -m   Netmask
+
+  -o   OS name [centos]
+  -r   OS version [6.4]
+  -t   Virtualbox ostype [RedHat_64]
+
+  -d   Top level directory to store files locally
+  -k   Public keyfile to provide for root
+
+  -h   Show this message
+EOF
+}
+
+while getopts “n:a:g:m:o:r:t:d:xh:” OPTION
+do
+  case $OPTION in
+    n)  name=$OPTARG;;
+    a)  ipaddress=$OPTARG;;
+
+    g)  group=$OPTARG;;
+    m)  netmask=$OPTARG;;
+
+    o)  os=$OPTARG;;
+    r)  rel=$OPTARG;;
+    t)  ostype=$OPTARG;;
+
+    d)  dir=$OPTARG;;
+    k)  key_file=$OPTARG;;
+    x)  execute=true;;
+
+    h)  usage; exit;;
+  esac
+done
+
+if [[ -z "$name" || -z "$ipaddress" ]];
+then
+    echo "A name for this server and a static IP address for local interface is required."
+    usage
+    exit
+fi
+
+echo -e "Setting up new server $name with ipaddress $ipaddress from $dir/images/$os/$rel/$os-$rel-autoks.iso"
+
+# Grab public key data for root ssh access
+key=`cat $key_file`
+
+# 0E is a reserved MAC range so we start there then generate a random remainder
+mac="0e:`openssl rand -hex 5 | sed 's/\(..\)/\1:/g; s/.$//'`"
+mac_virtualbox=`echo $mac | sed 's/://g'`
+
+# This makes the filename compatible with OSX arp implementation which strips leading 0 and outputs lowercase
+# If we want to run this on other platforms we'll need to update this (and likely the sinatra impl as well)
+kickstart_file=`echo "$mac.ks" | sed -e 's/0\([0-9a-f]\)/\1/g' -e 's/://g'`
+
+# Generate our unique kickstart file from template
+cfg > $dir/kickstartserver/files/$kickstart_file
+
+cd $dir && \
+VBoxManage createvm --name $name --ostype $ostype --basefolder $dir/machines --groups "/$group" --register && \
+VBoxManage modifyvm $name --biosbootmenu disabled && \
+VBoxManage modifyvm $name --memory 1536 --acpi on --boot1 disk --boot2 dvd && \
+VBoxManage modifyvm $name --bioslogofadein off --bioslogofadeout off --bioslogodisplaytime 0 && \
+VBoxManage modifyvm $name --nic1 nat && \
+VBoxManage modifyvm $name --nic2 hostonly --hostonlyadapter2 vboxnet0 --macaddress2 $mac_virtualbox && \
+VBoxManage storagectl $name --name "IDE Controller" --add ide --controller PIIX4 && \
+VBoxManage createhd --filename "$dir/machines/$name/$name.vdi" --size 10000 && \
+VBoxManage storageattach $name --storagectl "IDE Controller" --port 0 --device 0 --type hdd --medium "$dir/machines/$name/$name.vdi" && \
+VBoxManage storageattach $name --storagectl "IDE Controller" --port 0 --device 1 --type dvddrive --medium $dir/images/$os/$rel/$iso/$os-$rel-autoks.iso
+
+if $execute ; then
+  VBoxManage startvm $name
+  echo -e "Completed setting up new server $name with ipaddress $ipaddress. Assuming no errors the VM is now running automated install."
+else
+  echo -e "Completed setting up new server $name with ipaddress $ipaddress. Execution not requested, please manually start the VM."
+fi
+
+
