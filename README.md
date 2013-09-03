@@ -90,11 +90,11 @@ Once you're ready to spin up multiple machines undertake the following steps:
 
 1. Create a `machines.csv` file from `machines.csv.dist`. Here is an example:
 
-	app1,192.168.56.20,myorg/applications,false
-	app2,192.168.56.21,myorg/applications,false
-	app3,192.168.56.22,myorg/applications,false
-	db1,192.168.56.23,myorg/cluster,false
-	db2,192.168.56.24,myorg/cluster,false
+		app1,192.168.56.20,myorg/applications,false
+		app2,192.168.56.21,myorg/applications,false
+		app3,192.168.56.22,myorg/applications,false
+		db1,192.168.56.23,myorg/cluster,false
+		db2,192.168.56.24,myorg/cluster,false
 	
 2. Run the multiple machines script
 
