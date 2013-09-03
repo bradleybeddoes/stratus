@@ -58,7 +58,7 @@ If CentOS 6.4 isn't to your liking the script offers a number of options:
 
     $> bash scripts/automate_iso -h
     
-### Launch provided the kickstart server
+### Launch the provided kickstart server
 When you're spinning up new machines it is important to have the kickstart server running in the background. This is just a very basic sinatra app running in unicorn that maps a machines MAC addresses to kickstart files.
 
 	$> cd kickstartserver; 
