@@ -132,7 +132,7 @@ To publish machines to your local DNS server do the following:
 
 		$ORIGIN .
 		$TTL 3600
-		l.z5.io			IN SOA	localhost. root.localhost. (
+		example.com			IN SOA	localhost. root.localhost. (
 				2013090519 ; serial
 				10800      ; refresh (3 hours)
 				900        ; retry (15 minutes)
