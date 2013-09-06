@@ -32,11 +32,6 @@ We find most development nodes are better suited to using static IP so tend to s
 
 		$> gem install bundler
 
-5. Checkout [ssh-config command line tools](git@github.com:wthys/ssh-config.git) and add to your path
-
-    $> git clone git@github.com:wthys/ssh-config.git
-    $> echo -e '\n\n# Command line ssh-config\nPATH=$PATH:'$PWD'/ssh-config' >> ~/.bash_profile && source ~/.bash_profile
-
 4. Clone stratus to your machine
 
     	$> git clone git@github.com:bradleybeddoes/stratus.git
@@ -106,8 +101,53 @@ Once you're ready to spin up multiple machines undertake the following steps:
 	
 This will spin up multiple machines in parallel. For a really fun experience set all the execute flags to true :trollface:. This script could be quite easily extended for more advanced cases.
 
-## Tasks
-- [ ] Have machines auto configured in a specified zone for the DNS server running on the host
-- [ ] Have ~/.ssh/config populated for new machines
+## Advanced Topics
 
+### SSH config population
+To enable auto population of your ~/.ssh/config file with name and IP of the machines you create do the following:
 
+1. Checkout [ssh-config command line tools](git@github.com:wthys/ssh-config.git) and add to your path
+2. In your setup file change update_ssh to be true
+3. Build machines!
+
+### Local DNS population
+To publish machines to your local DNS server do the following:
+
+1. Start off by following this guide [http://www.macshadows.com/kb/index.php?title=How_To:_Enable_BIND_-_Mac_OS_X's_Built-in_DNS_Server](http://www.macshadows.com/kb/index.php?title=How_To:_Enable_BIND_-_Mac_OS_X's_Built-in_DNS_Server). Here is what I came up with config wise:
+
+	**/etc/named.conf**
+	
+		...
+		zone "example.com" IN { 
+		type master; 
+		file "example.zone";
+		allow-update {
+          	127.0.0.1;
+          	192.168.56.0/24;
+          }; 
+		};
+		...
+
+	**/var/named/example.zone**
+
+		$ORIGIN .
+		$TTL 3600
+		l.z5.io			IN SOA	localhost. root.localhost. (
+				2013090519 ; serial
+				10800      ; refresh (3 hours)
+				900        ; retry (15 minutes)
+				604800     ; expire (1 week)
+				86400      ; minimum (1 day)
+				)
+			NS	localhost.
+		$ORIGIN example.com.
+		$TTL 3600
+		master			A	192.168.56.1
+
+2. Allow your local account access the update key
+
+		$> sudo chmod 644 /var/run/named/session.key
+		
+3. In your setup file change update_zone to be true
+4. In your setup file change zone to be the dynamic zone above e.g `example.com`
+5. Build machines!
