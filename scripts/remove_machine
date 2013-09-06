@@ -1,0 +1,74 @@
+#!/bin/bash
+
+source scripts/includes/load_setup
+
+name=
+
+usage()
+{
+cat << EOF
+usage: $0 options
+
+Remove a Virtualbox server
+
+Requirements:
+  Virtualbox has a machine with the name and IP provided
+
+OPTIONS:
+  -n   Name for this server (Required)
+  -a   IP Address (Required)
+
+  -h   Show this message
+EOF
+}
+
+while getopts “n:a:h:” OPTION
+do
+  case $OPTION in
+    n)  name=$OPTARG;;
+    a)  ipaddress=$OPTARG;;
+
+    h)  usage; exit;;
+  esac
+done
+
+if [[ -z "$name" || -z "$ipaddress" ]];
+then
+    echo "A name for the machine to be deleted."
+    usage
+    exit
+fi
+
+
+if ( VBoxManage showvminfo --machinereadable $name | grep -q ^VMState=.running. );
+then
+  VBoxManage controlvm $name poweroff
+  until $(VBoxManage showvminfo --machinereadable $name | grep -q ^VMState=.poweroff.)
+  do
+    sleep 1
+  done
+fi
+
+VBoxManage unregistervm --delete $name && \
+rm -rf $home_dir/machines/$name
+
+ssh-keygen -R $name && \
+ssh-keygen -R $name.$zone && \
+ssh-keygen -R $ipaddress
+
+if ( $update_ssh );
+then
+  cp ~/.ssh/config ~/.ssh/config.`openssl rand -base64 8 |md5 |head -c8;echo` && \
+  ssh-config -f ~/.ssh/config -d -H $name
+fi
+
+if ( $update_zone );
+then
+  # Populate local DNS
+  record=$name.$zone
+  (
+   echo "zone $zone"
+   echo "update delete $record A"
+   echo "send"
+  ) | /usr/bin/nsupdate -l
+fi

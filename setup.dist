@@ -1,6 +1,15 @@
-# The directory where Stratum created
+# The directory where Stratus created
 # iso and machines will be stored within.
 #
 # This can (should?) differ from your Virtualbox configured
 # default directory for machines.
 home_dir=$HOME/Virtualbox
+
+# Populate local SSH config
+update_ssh=true
+
+# Populate local DNS
+update_zone=true
+
+#The base zone for stratus created machines to live in DNS
+zone=example.com

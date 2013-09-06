@@ -7,9 +7,9 @@ while  read -r line; do
       echo "Name: $name, IP: $ipaddress, Group: $group, Execute:$execute"
 
       if $execute ; then
-        bash ./scripts/create_machine -n $name -a $ipaddress -g $group -x &
+        bash ./scripts/create_machine -n $name -a $ipaddress -g $group -x
       else
-        bash ./scripts/create_machine -n $name -a $ipaddress -g $group &
+        bash ./scripts/create_machine -n $name -a $ipaddress -g $group
       fi
 
     done <<< $line

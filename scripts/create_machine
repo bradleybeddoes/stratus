@@ -102,11 +102,27 @@ VBoxManage createhd --filename "$home_dir/machines/$name/$name.vdi" --size 10000
 VBoxManage storageattach $name --storagectl "IDE Controller" --port 0 --device 0 --type hdd --medium "$home_dir/machines/$name/$name.vdi" && \
 VBoxManage storageattach $name --storagectl "IDE Controller" --port 0 --device 1 --type dvddrive --medium $home_dir/images/$os/$rel/$iso/$os-$rel-autoks.iso
 
+if ( $update_ssh );
+then
+  cp ~/.ssh/config ~/.ssh/config.`openssl rand -base64 8 |md5 |head -c8;echo` && \
+  ssh-config -f ~/.ssh/config -s -H $name -o Hostname=$ipaddress
+fi
+
+if ( $update_zone );
+then
+  # Populate local DNS
+  record=$name.$zone
+  (
+   echo "zone $zone"
+   echo "update add $record 600 A $ipaddress"
+   echo "send"
+  ) | /usr/bin/nsupdate -l
+fi
+
 if $execute ; then
   VBoxManage startvm $name
   echo -e "Completed setting up new server $name with ipaddress $ipaddress. Assuming no errors the VM is now running automated install."
 else
   echo -e "Completed setting up new server $name with ipaddress $ipaddress. Execution not requested, please manually start the VM."
 fi
-
 

@@ -32,6 +32,10 @@ We find most development nodes are better suited to using static IP so tend to s
 
 		$> gem install bundler
 
+5. Checkout [ssh-config command line tools](git@github.com:wthys/ssh-config.git) and add to your path
+
+    $> git clone git@github.com:wthys/ssh-config.git
+    $> echo -e '\n\n# Command line ssh-config\nPATH=$PATH:'$PWD'/ssh-config' >> ~/.bash_profile && source ~/.bash_profile
 
 4. Clone stratus to your machine
 
