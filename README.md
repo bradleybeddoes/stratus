@@ -106,7 +106,7 @@ This will spin up multiple machines in parallel. For a really fun experience set
 ### SSH config population
 To enable auto population of your ~/.ssh/config file with name and IP of the machines you create do the following:
 
-1. Checkout [ssh-config command line tools](git@github.com:wthys/ssh-config.git) and add to your path
+1. Checkout [ssh-config command line tools](https://github.com/wthys/ssh-config) and add to your path
 2. In your setup file change update_ssh to be true
 3. Build machines!
 
