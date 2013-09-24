@@ -56,7 +56,7 @@ echo -e "Setting up auto deploy iso for $os $rel"
 
 mkdir -p $home_dir/images/$os/$rel && cd $home_dir/images/$os/$rel
 if [ ! -f $home_dir/images/$os/$rel/$iso ]; then
-  wget $mirror/$iso
+  curl -O $mirror/$iso
 fi
 
 hdiutil attach -quiet -mountpoint /Volumes/$os-$rel $iso
