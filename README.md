@@ -28,6 +28,13 @@ We find most development nodes are better suited to using static IP so tend to s
 		$> brew install rbenv
 		$> brew install ruby-build
 		
+   Be sure to add the appropriate line to your ~/.bash_profile as shown in the installer output then reload it.
+   
+                $> rbenv install 2.0.0-p247
+                $> rbenv global 2.0.0-p247      # optional you may like to set this locally with rbenv local instead 
+		
+3.
+		
 4. Install [bundler](http://bundler.io/)
 
 		$> gem install bundler
