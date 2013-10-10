@@ -39,10 +39,13 @@ then
     exit
 fi
 
-if [ ! -r /var/run/named/session.key ]
+if ( $update_zone );
 then
-  echo "/var/run/named/session.key doesn't have permissions for current user to read. No action taken for machine $name, exiting.";
-  exit;
+  if [ ! -r /var/run/named/session.key ]
+  then
+    echo "/var/run/named/session.key doesn't have permissions for current user to read. No action taken for machine $name, exiting.";
+    exit;
+  fi
 fi
 
 if ( VBoxManage showvminfo --machinereadable $name | grep -q ^VMState=.running. );
