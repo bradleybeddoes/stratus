@@ -74,6 +74,12 @@ then
     exit
 fi
 
+if [ ! -r /var/run/named/session.key ]
+then
+  echo "/var/run/named/session.key doesn't have permissions for current user to read. No action taken for machine $name, exiting.";
+  exit;
+fi
+
 echo -e "Setting up new server $name with ipaddress $ipaddress from $home_dir/images/$os/$rel/$os-$rel-autoks.iso"
 
 # Grab public key data for root ssh access
