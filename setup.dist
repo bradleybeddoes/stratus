@@ -7,9 +7,3 @@ home_dir=$HOME/Virtualbox
 
 # Populate local SSH config
 update_ssh=false
-
-# Populate local DNS
-update_zone=false
-
-#The base zone for stratus created machines to live in DNS
-zone=example.com

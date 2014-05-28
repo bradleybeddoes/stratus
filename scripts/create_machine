@@ -15,9 +15,9 @@ group=""
 execute=false
 
 os='centos'
-rel='6.4'
+rel='6.5'
 netmask='255.255.255.0'
-key_file=$HOME/.ssh/id_rsa.pub
+key_file=keys/authorized_keys
 ostype='RedHat_64'
 
 usage()
@@ -74,15 +74,6 @@ then
     exit
 fi
 
-if ( $update_zone );
-then
-  if [ ! -r /var/run/named/session.key ]
-  then
-    echo "/var/run/named/session.key doesn't have permissions for current user to read. No action taken for machine $name, exiting.";
-    exit;
-  fi
-fi
-
 echo -e "Setting up new server $name with ipaddress $ipaddress from $home_dir/images/$os/$rel/$os-$rel-autoks.iso"
 
 # Grab public key data for root ssh access
@@ -102,7 +93,7 @@ cfg > kickstartserver/files/$kickstart_file
 cd $home_dir && \
 VBoxManage createvm --name $name --ostype $ostype --basefolder $home_dir/machines --groups "/$group" --register && \
 VBoxManage modifyvm $name --biosbootmenu disabled && \
-VBoxManage modifyvm $name --memory 1536 --acpi on --boot1 disk --boot2 dvd && \
+VBoxManage modifyvm $name --memory 512 --acpi on --boot1 disk --boot2 dvd && \
 VBoxManage modifyvm $name --bioslogofadein off --bioslogofadeout off --bioslogodisplaytime 0 && \
 VBoxManage modifyvm $name --nic1 nat && \
 VBoxManage modifyvm $name --nic2 hostonly --hostonlyadapter2 vboxnet0 --macaddress2 $mac_virtualbox && \
@@ -115,23 +106,5 @@ if ( $update_ssh );
 then
   cp ~/.ssh/config ~/.ssh/config.`openssl rand -base64 8 |md5 |head -c8;echo` && \
   ssh-config -f ~/.ssh/config -s -H $name -o Hostname=$ipaddress
-fi
-
-if ( $update_zone );
-then
-  # Populate local DNS
-  record=$name.$zone
-  (
-   echo "zone $zone"
-   echo "update add $record 600 A $ipaddress"
-   echo "send"
-  ) | /usr/bin/nsupdate -l
-fi
-
-if $execute ; then
-  VBoxManage startvm $name
-  echo -e "Completed setting up new server $name with ipaddress $ipaddress. Assuming no errors the VM is now running automated install."
-else
-  echo -e "Completed setting up new server $name with ipaddress $ipaddress. Execution not requested, please manually start the VM."
 fi
 

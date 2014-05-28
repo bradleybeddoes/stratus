@@ -11,9 +11,9 @@ source scripts/includes/load_setup
 source scripts/includes/grub_tmpl
 
 os='centos'
-rel='6.4'
-mirror='http://mirror.aarnet.edu.au/pub/centos/6.4/isos/x86_64'
-iso='CentOS-6.4-x86_64-minimal.iso'
+rel='6.5'
+mirror='http://mirror.aarnet.edu.au/pub/centos/6.5/isos/x86_64'
+iso='CentOS-6.5-x86_64-minimal.iso'
 ks_server='http://192.168.56.1:8080/kickstart'
 
 usage()

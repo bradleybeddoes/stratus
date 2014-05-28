@@ -39,15 +39,6 @@ then
     exit
 fi
 
-if ( $update_zone );
-then
-  if [ ! -r /var/run/named/session.key ]
-  then
-    echo "/var/run/named/session.key doesn't have permissions for current user to read. No action taken for machine $name, exiting.";
-    exit;
-  fi
-fi
-
 if ( VBoxManage showvminfo --machinereadable $name | grep -q ^VMState=.running. );
 then
   VBoxManage controlvm $name poweroff
@@ -61,22 +52,10 @@ VBoxManage unregistervm --delete $name && \
 rm -rf $home_dir/machines/$name
 
 ssh-keygen -R $name && \
-ssh-keygen -R $name.$zone && \
 ssh-keygen -R $ipaddress
 
 if ( $update_ssh );
 then
   cp ~/.ssh/config ~/.ssh/config.`openssl rand -base64 8 |md5 |head -c8;echo` && \
   ssh-config -f ~/.ssh/config -d -H $name
-fi
-
-if ( $update_zone );
-then
-  # Populate local DNS
-  record=$name.$zone
-  (
-   echo "zone $zone"
-   echo "update delete $record A"
-   echo "send"
-  ) | /usr/bin/nsupdate -l
 fi
