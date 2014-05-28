@@ -92,6 +92,7 @@ cfg > kickstartserver/files/$kickstart_file
 
 cd $home_dir && \
 VBoxManage createvm --name $name --ostype $ostype --basefolder $home_dir/machines --groups "/$group" --register && \
+VBoxManage modifyvm $name --rtcuseutc on && \
 VBoxManage modifyvm $name --biosbootmenu disabled && \
 VBoxManage modifyvm $name --memory 512 --acpi on --boot1 disk --boot2 dvd && \
 VBoxManage modifyvm $name --bioslogofadein off --bioslogofadeout off --bioslogodisplaytime 0 && \
