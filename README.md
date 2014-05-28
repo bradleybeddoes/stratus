@@ -4,9 +4,7 @@
 
 Spin up multiple Linux nodes via VirtualBox and Kickstart for developers working from OSX.
 
-You might find things to be broken as we're still hacking on this, patches welcome!.
-
-Just like you'd pair good :wine_glass: with tasty :meat_on_bone: we recommend you pair this with [Ansible](http://www.ansibleworks.com) for extra developer :smiley:.
+Now with more mitchellh/vagrant goodness, supplying the Vagrant public key by default for root SSH access.
 
 If you find this useful you're of course welcome to buy us :beers: and :pizza:.
 
@@ -33,9 +31,7 @@ We find most development nodes are better suited to using static IP so tend to s
                 $> rbenv install 2.0.0-p247
                 $> rbenv global 2.0.0-p247      # optional you may like to set this locally with rbenv local instead 
 		
-3.
-		
-4. Install [bundler](http://bundler.io/)
+3. Install [bundler](http://bundler.io/)
 
 		$> gem install bundler
 
@@ -54,13 +50,13 @@ We find most development nodes are better suited to using static IP so tend to s
 		$> cd kickstartserver && bundle install && cd ..
 
 ### Build an iso that will launch kickstart automatically
-We've tested this using the CentOS 6.4 minimal ISO. It will probably work for other distributions without much bother. Ubuntu is next on the list to officially support.
+We've tested this using the CentOS 6.[4,5] minimal ISO. It will probably work for other distributions without much bother. Ubuntu is next on the list to officially support.
 
-To build a CentOS 6.4 ISO:
+To build a CentOS 6.5 ISO:
 
     $> bash scripts/automate_iso
 
-If CentOS 6.4 isn't to your liking the script offers a number of options:
+If CentOS 6.5 isn't to your liking the script offers a number of options:
 
     $> bash scripts/automate_iso -h
     
@@ -71,7 +67,7 @@ When you're spinning up new machines it is important to have the kickstart serve
 	$> bundle exec unicorn; 
 
 ### Create a machine
-Once you have your iso is built you only need a few details to get a new machine running. By default your ~/.ssh/id_rsa.pub key is authorized for login as root on the new machine.
+Once you have your iso is built you only need a few details to get a new machine running. By default the Vagrant public key mitchellh/vagrant/tree/master/keys is authorized for login as root on the new machine. Add any additional public keys you'd like to authorize to keys/authorized_keys
 
     $> bash scripts/create_machine -n <machine name> -a <ip address>
 
@@ -83,7 +79,7 @@ Once you have your iso is built you only need a few details to get a new machine
 
 This process publishes a file to `kickstartserver/files/<mac>.ks`. Once the file has been served to a machine to complete its kickstart process the file is renamed `kickstartserver/files/<mac>.ks.served` so you can clean these up at some future time.
 
-Once the create machine process has completed it will appear in your Virtualbox management UI and you can manage it as normal.
+Once the create machine process has completed it will appear in your Virtualbox management UI and you can manage it as normal. You want to use this to create a [Vagrant base box](http://docs.vagrantup.com/v2/virtualbox/boxes.html).
 
 Once again the script offers a number of options:
 
@@ -91,8 +87,21 @@ Once again the script offers a number of options:
 
 The -x to automatically startup the new machine after provisioning and -g options are particularly useful.
 
-## Putting it all together
-Once you're ready to spin up multiple machines undertake the following steps:
+#### Installing VirtualBox guest additions
+If you're planning on shipping this as a Vagrant base box or just want to do things like shared directories you'll want to additionally install the Virtualbox guest additions:
+
+1. Run `yum update kernel*`
+1. Reboot the VM
+1. Install required packages `yum install gcc kernel-devel kernel-headers dkms make bzip2 perl
+` 
+1. Set kernel source dir ``export KERN_DIR=/usr/src/kernels/`uname -r` ``
+1. Grab the x86_64 RPM for the latest VirtualBox guest tools currently http://download.virtualbox.org/virtualbox/4.3.10/
+1. Install the VirtualBox RPM `yum install <downloaded rpm>`
+
+
+
+## Multiple Machines
+If you'd like to spin up multiple machines undertake the following steps:
 
 1. Create a `machines.csv` file from `machines.csv.dist`. Here is an example:
 
@@ -106,7 +115,7 @@ Once you're ready to spin up multiple machines undertake the following steps:
 
 		$> bash scripts/create_multiple_machines
 	
-This will spin up multiple machines in parallel. For a really fun experience set all the execute flags to true :trollface:. This script could be quite easily extended for more advanced cases.
+For a really fun experience set all the execute flags to true :trollface:. This script could be quite easily extended for more advanced cases.
 
 ## Advanced Topics
 
@@ -116,45 +125,3 @@ To enable auto population of your ~/.ssh/config file with name and IP of the mac
 1. Checkout [ssh-config command line tools](https://github.com/wthys/ssh-config) and add to your path
 2. In your setup file change update_ssh to be true
 3. Build machines!
-
-### Local DNS population
-To publish machines to your local DNS server do the following:
-
-1. Start off by following this guide [http://www.macshadows.com/kb/index.php?title=How_To:_Enable_BIND_-_Mac_OS_X's_Built-in_DNS_Server](http://www.macshadows.com/kb/index.php?title=How_To:_Enable_BIND_-_Mac_OS_X's_Built-in_DNS_Server). Here is what I came up with config wise:
-
-	**/etc/named.conf**
-	
-		...
-		zone "example.com" IN { 
-		type master; 
-		file "example.zone";
-		allow-update {
-          	127.0.0.1;
-          	192.168.56.0/24;
-          }; 
-		};
-		...
-
-	**/var/named/example.zone**
-
-		$ORIGIN .
-		$TTL 3600
-		example.com			IN SOA	localhost. root.localhost. (
-				2013090519 ; serial
-				10800      ; refresh (3 hours)
-				900        ; retry (15 minutes)
-				604800     ; expire (1 week)
-				86400      ; minimum (1 day)
-				)
-			NS	localhost.
-		$ORIGIN example.com.
-		$TTL 3600
-		master			A	192.168.56.1
-
-2. Allow your local account access the update key
-
-		$> sudo chmod 644 /var/run/named/session.key
-		
-3. In your setup file change update_zone to be true
-4. In your setup file change zone to be the dynamic zone above e.g `example.com`
-5. Build machines!
