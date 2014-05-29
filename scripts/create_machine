@@ -109,3 +109,9 @@ then
   ssh-config -f ~/.ssh/config -s -H $name -o Hostname=$ipaddress
 fi
 
+if $execute ; then
+  VBoxManage startvm $name
+  echo -e "Completed setting up new server $name with ipaddress $ipaddress. Assuming no errors the VM is now running automated install."
+else
+  echo -e "Completed setting up new server $name with ipaddress $ipaddress. Execution not requested, please manually start the VM."
+fi
