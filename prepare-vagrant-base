@@ -1,0 +1,41 @@
+#!/bin/bash
+
+read -p "Have you performed an update to latest kernel and packages (if not we'll do it for you and reboot)? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+  read -p "Press Y when you've made the VB Guest Additions available to this VM [Devices > 'Insert Guest Additions CD Image' (Host+D)] " -n 1 -r
+  echo
+
+  yum -y install gcc kernel-devel kernel-headers make bzip2 perl
+  mkdir -p /media/cdrom
+  export KERN_DIR=/usr/src/kernels/`uname -r`
+
+  mount /dev/scd0 /media/cdrom
+  sh /media/cdrom/VBoxLinuxAdditions.run
+  umount /media/cdrom
+
+  # Ensure vagrant can send remote commands via sudo without a tty
+  sed -i 's/^\(Defaults.*requiretty\)/#\1/' /etc/sudoers
+
+  yum clean all
+  rm -rf /tmp/*
+  rm -f /var/log/wtmp /var/log/btmp
+  rm -f prepare-vagrant-base anaconda-ks.cfg install.log install.log.syslog
+
+  # Hack to make sure this doesn't screw us with eth1 across different environments
+  rm -f /etc/sysconfig/network-scripts/ifcfg-eth1 2> /dev/null
+  rm -f /etc/udev/rules.d/70-persistent-net.rules 2> /dev/null
+  mkdir -p /etc/udev/rules.d/70-persistent-net.rules
+
+  echo "After this VM shuts down remove VBoxGuestAdditions.iso from storage and disable Adapter 2 from networking before building Vagrant package."
+  read -p "Press Y to shutdown the VM " -n 1 -r
+  echo
+  history -c
+  shutdown -h now
+else
+  echo "This script will now perform a full yum update and then reboot the VM"
+  echo "Be sure to re-run this script after reboot completes"
+  yum -y update
+  reboot
+fi
